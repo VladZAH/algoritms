@@ -1,0 +1,12 @@
+.node {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+}
+
+.node-colored {
+    background-color: blue;
+}
+.pointer{
+    background-color: red;
+}
