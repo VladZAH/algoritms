@@ -8,7 +8,9 @@ class Grid extends React.Component {
         this.state = {
             nodes: [],
             animating: false,
-            inOrder: true
+            inOrder: true,
+            speed: 'medium',
+            ms: 100
         };
     }
 
@@ -33,13 +35,45 @@ class Grid extends React.Component {
         this.setState({nodes})
     }
 
-    onClick = () => {
+    animateBubblesort = () => {
         this.bubbleSort(this.state.nodes);
     }
-    renew = () => {
+    animateSelectionsort = () => {
+        this.selectionSort(this.state.nodes);
+    }
+
+    shuffle = () => {
         let arr = this.state.nodes.slice(0);
         arr.sort(() => Math.random() - 0.5);
         this.setState({nodes: arr, inOrder: false})
+    }
+
+    selectionSort = (arr) => {
+        const swap = (arr, idx1, idx2) =>
+          ([arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]]);
+        let count = 0;
+      
+        for (var i = 0; i < arr.length; i++) {
+          let lowest = i;
+          for (var j = i + 1; j < arr.length; j++) {    
+            this.time(count,arr.slice(0),lowest, j)
+            count++
+            let x = arr[lowest].numb.filter(el => el.colored)
+            let y = arr[j].numb.filter(el => el.colored)
+            if (x.length > y.length) {
+              lowest = j;
+            }
+          }
+          if (i !== lowest) {
+              swap(arr, i, lowest);
+              this.time(count,arr.slice(0),lowest-1, j-1)
+              count++
+          }
+
+        }
+        setTimeout(() => {
+            this.setState({animating: false, inOrder: true})
+        }, this.state.ms * count)
     }
 
     bubbleSort = (arr) => {
@@ -55,42 +89,71 @@ class Grid extends React.Component {
                         arr[j] = arr[j+1];
                         arr[j+1] = temp;
                         noSwaps = false;
-                        this.time(count,arr.slice(0),i,j)
+                        this.time(count,arr.slice(0),j,j+1)
                         count++  
                     }else{
-                        this.time(count,arr.slice(0),i,j)
+                        this.time(count,arr.slice(0),j,j+1)
                         count++ 
                     }
                 }
             if(noSwaps){
-                this.time(count,arr.slice(0),i,j)
+                this.time(count,arr.slice(0),j,j+1)
                 break
             
             };
         }
         setTimeout(() => {
             this.setState({animating: false, inOrder: true})
-        }, 100 * count)
+        }, this.state.ms * count)
 
     }
-    time = (count, arr,i,j) => {
+    time = (count, arr,p1,p2) => {
         setTimeout(() => {
-            arr[j].isPointer = true;
-            arr[j+1].isPointer = true;
+            arr[p1].isPointer = true;
+            arr[p2].isPointer = true;
             this.setState({nodes: arr, animating: true})
-            arr[j].isPointer = false;
-            arr[j+1].isPointer = false;
-            console.log(i)              
-        }, 100 * count)               
+            arr[p1].isPointer = false;
+            arr[p2].isPointer = false;            
+        }, this.state.ms * count)               
       }
+
+    handleOptionChange = (e) => {
+        if(e.target.value === 'slow'){
+            this.setState({
+                speed: e.target.value,
+                ms: 300
+            });
+        }else if(e.target.value === 'medium'){
+            this.setState({
+                speed: e.target.value,
+                ms: 100
+            });
+        }else if(e.target.value === 'fast'){
+            this.setState({
+                speed: e.target.value,
+                ms: 50
+            });
+        }
+            
+    }
 
 
     render() {
         
         return(
             <div >
-                <button className={this.state.inOrder || this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.onClick}>Animate bubble sort</button>
-                <button className={this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.renew}>Shuffle</button>
+                <form>
+                    <p>Select playing speed</p>
+                    <input type="radio" id="slow" name="speed" value="slow" checked={this.state.speed === 'slow'} onChange={this.handleOptionChange} />
+                    <label htmlFor="slow">slow</label>
+                    <input type="radio" id="medium" name="speed" value="medium" checked={this.state.speed === 'medium'} onChange={this.handleOptionChange}/>
+                    <label htmlFor="medium">medium</label>
+                    <input type="radio" id="fast" name="speed" value="fast" checked={this.state.speed === 'fast'} onChange={this.handleOptionChange}/>
+                    <label htmlFor="fast">fast</label>
+                </form>
+                <button className={this.state.inOrder || this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.animateSelectionsort}>Animate selection sort</button>    
+                <button className={this.state.inOrder || this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.animateBubblesort}>Animate bubble sort</button>
+                <button className={this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.shuffle}>Shuffle</button>
                 <table className='grid'>
                     {this.state.nodes.map((row) => {
                         return (
