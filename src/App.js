@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import Grid from './components/Grid';
 import './App.css';
 

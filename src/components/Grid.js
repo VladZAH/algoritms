@@ -41,12 +41,40 @@ class Grid extends React.Component {
     animateSelectionsort = () => {
         this.selectionSort(this.state.nodes);
     }
+    animateInsertionsort = () => {
+        this.insertionSort(this.state.nodes);
+    }
 
     shuffle = () => {
         let arr = this.state.nodes.slice(0);
         arr.sort(() => Math.random() - 0.5);
         this.setState({nodes: arr, inOrder: false})
     }
+
+    insertionSort = (arr) => {
+        var count = 0
+        var currentVal, curNum
+        for(var i = 1; i < arr.length; i++){
+            currentVal = arr[i];
+            curNum = arr[i].numb.filter(el => el.colored).length;
+            for(var j = i - 1; j >= 0 && arr[j].numb.filter(el => el.colored).length > curNum; j--) {
+                this.time(count,arr.slice(0), j+1, i)
+                count++
+                let x = arr[j+1]
+                arr[j+1] = arr[j] 
+                arr[j] = x
+            }  
+            arr[j+1] = currentVal;
+            curNum = j+1
+            this.time(count,arr.slice(0), j+1, i)
+            count++
+        }
+        setTimeout(() => {
+            this.setState({animating: false, inOrder: true})
+        }, this.state.ms * count)
+    }
+
+
 
     selectionSort = (arr) => {
         const swap = (arr, idx1, idx2) =>
@@ -66,13 +94,13 @@ class Grid extends React.Component {
           }
           if (i !== lowest) {
               swap(arr, i, lowest);
-              this.time(count,arr.slice(0),lowest-1, j-1)
+              this.time(count,arr.slice(0),lowest, j)
               count++
           }
 
         }
         setTimeout(() => {
-            this.setState({animating: false, inOrder: true})
+            this.setState({animating: false, inOrder: true, nodes: arr})
         }, this.state.ms * count)
     }
 
@@ -109,11 +137,13 @@ class Grid extends React.Component {
     }
     time = (count, arr,p1,p2) => {
         setTimeout(() => {
+            if(arr[p1] !== undefined && arr[p2] !== undefined){
             arr[p1].isPointer = true;
             arr[p2].isPointer = true;
             this.setState({nodes: arr, animating: true})
             arr[p1].isPointer = false;
-            arr[p2].isPointer = false;            
+            arr[p2].isPointer = false;  
+            }          
         }, this.state.ms * count)               
       }
 
@@ -139,11 +169,13 @@ class Grid extends React.Component {
 
 
     render() {
-        
+        let disabled = this.state.inOrder || this.state.animating;
+        let shuffle = this.state.animating;
         return(
-            <div >
+            <div className='app'>
                 <form>
-                    <p>Select playing speed</p>
+                    <h1>Animate Algorithms</h1>
+                    <p>select playing speed, shuffle, and go...</p>
                     <input type="radio" id="slow" name="speed" value="slow" checked={this.state.speed === 'slow'} onChange={this.handleOptionChange} />
                     <label htmlFor="slow">slow</label>
                     <input type="radio" id="medium" name="speed" value="medium" checked={this.state.speed === 'medium'} onChange={this.handleOptionChange}/>
@@ -151,9 +183,7 @@ class Grid extends React.Component {
                     <input type="radio" id="fast" name="speed" value="fast" checked={this.state.speed === 'fast'} onChange={this.handleOptionChange}/>
                     <label htmlFor="fast">fast</label>
                 </form>
-                <button className={this.state.inOrder || this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.animateSelectionsort}>Animate selection sort</button>    
-                <button className={this.state.inOrder || this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.animateBubblesort}>Animate bubble sort</button>
-                <button className={this.state.animating ? 'hide-buton' : 'show-button'} onClick={this.shuffle}>Shuffle</button>
+
                 <table className='grid'>
                     {this.state.nodes.map((row) => {
                         return (
@@ -167,7 +197,10 @@ class Grid extends React.Component {
                         );
                     })}                    
                 </table>
-
+                <button disabled={shuffle} className='shuffle-btn' onClick={this.shuffle}>SHUFFLE</button> <br />
+                <button disabled={disabled} className='button' onClick={this.animateInsertionsort}>Animate <br/> Insertion Sort</button>
+                <button  disabled={disabled} onClick={this.animateSelectionsort}>Animate <br/>  Selection Sort</button>    
+                <button disabled={disabled} onClick={this.animateBubblesort}>Animate <br/>  Bubble Sort</button>
             </div>
         );
     }
