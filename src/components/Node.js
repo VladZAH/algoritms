@@ -1,26 +1,19 @@
 import React from 'react';
 import './styles/Node.css'
 
-class Node extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {};
+const Node = (props) => {
+    let startFinishClass = 'node';
+    if(props.node.colored && props.pointer){
+        startFinishClass = 'node pointer'
+    }else if(props.node.colored){
+        startFinishClass = 'node node-colored'
     }
 
-    render() {
-        let startFinishClass = 'node';
-        if(this.props.node.colored && this.props.pointer){
-            startFinishClass = 'node pointer'
-        }else if(this.props.node.colored){
-            startFinishClass = 'node node-colored'
-        }
-
-        return(
-            <div className={startFinishClass} key={this.props.node.key}>
-                
-            </div>
-        );
-    }
+    return(
+        <div className={startFinishClass} key={props.node.key}>
+            
+        </div>
+    );  
 }
 
 export default Node;
