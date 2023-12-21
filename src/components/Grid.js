@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import Node from './Node';
 import './styles/Grid.css'
 
@@ -7,10 +7,12 @@ const Grid = () => {
     const [nodes, setNodes] = useState([])
     const [animating, setAnimating] = useState(false)
     const [inOrder, setInOrder] = useState(true)
-    const [speed, setSpeed] = useState('medium')
-    const [ms, setMs] = useState(100)
+    const [speed, setSpeed] = useState('fast')
+    const [ms, setMs] = useState(50)
+    const tout = useRef([])
+    
 
-    useEffect(() => {
+    const createNodes = () => {
         const nodes = [];
         for(let row = 0; row < 25; row++){
             const curRow = [];
@@ -28,7 +30,11 @@ const Grid = () => {
                     isPointer: false
                     })
         }
-        setNodes(nodes)
+        return nodes
+    }
+
+    useEffect(() => {
+        setNodes(createNodes())
     }, [])
 
 
@@ -43,6 +49,11 @@ const Grid = () => {
     }
 
     const shuffle = () => {
+        for (var i=0; i<tout.current.length; i++) {
+            clearTimeout(tout.current[i]);
+          }
+        tout.current=([])
+        setAnimating(false)
         let arr = nodes.slice(0);
         arr.sort(() => Math.random() - 0.5);
         setNodes(arr);
@@ -50,13 +61,15 @@ const Grid = () => {
     }
 
     const insertionSort = (arr) => {
-        var count = 0
+        let count = 0
+        const timers = []
         var currentVal, curNum
         for(var i = 1; i < arr.length; i++){
             currentVal = arr[i];
             curNum = arr[i].numb.filter(el => el.colored).length;
             for(var j = i - 1; j >= 0 && arr[j].numb.filter(el => el.colored).length > curNum; j--) {
-                time(count,arr.slice(0), j+1, i)
+                let t1 = time(count,arr.slice(0), j+1, i)
+                timers.push(t1)
                 count++
                 let x = arr[j+1]
                 arr[j+1] = arr[j] 
@@ -64,13 +77,16 @@ const Grid = () => {
             }  
             arr[j+1] = currentVal;
             curNum = j+1
-            time(count,arr.slice(0), j+1, i)
+            let t2 = time(count,arr.slice(0), j+1, i)
+            timers.push(t2)
             count++
         }
-        setTimeout(() => {
+        let t3 = setTimeout(() => {
             setAnimating(false)
             setInOrder(true)
         }, ms * count)
+        timers.push(t3)
+        tout.current=timers
     }
 
 
@@ -79,11 +95,13 @@ const Grid = () => {
         const swap = (arr, idx1, idx2) =>
           ([arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]]);
         let count = 0;
+        const timers = []
       
         for (var i = 0; i < arr.length; i++) {
           let lowest = i;
           for (var j = i + 1; j < arr.length; j++) {    
-            time(count,arr.slice(0),lowest, j)
+            let t = time(count,arr.slice(0),lowest, j)
+            timers.push(t)
             count++
             let x = arr[lowest].numb.filter(el => el.colored)
             let y = arr[j].numb.filter(el => el.colored)
@@ -93,21 +111,25 @@ const Grid = () => {
           }
           if (i !== lowest) {
               swap(arr, i, lowest);
-              time(count,arr.slice(0),lowest, j)
+              let t1 = time(count,arr.slice(0),lowest, j)
+              timers.push(t1)
               count++
           }
 
         }
-        setTimeout(() => {
-            setAnimating(false)
-            setInOrder(true)
-            setNodes(arr)
-        }, ms * count)
+        let t3 = setTimeout(() => {
+                setAnimating(false)
+                setInOrder(true)
+                setNodes(arr)
+            }, ms * count)
+        timers.push(t3)
+        tout.current=timers
     }
 
     const bubbleSort = (arr) => {
         var noSwaps;
         var count = 0;
+        const timers = []
         for(var i = arr.length; i > 0; i--){
             noSwaps = true;
                 for(var j = 0; j < i - 1; j++){
@@ -118,36 +140,42 @@ const Grid = () => {
                         arr[j] = arr[j+1];
                         arr[j+1] = temp;
                         noSwaps = false;
-                        time(count,arr.slice(0),j,j+1)
+                        let t1 = time(count,arr.slice(0),j,j+1)
+                        timers.push(t1)
                         count++  
                     }else{
-                        time(count,arr.slice(0),j,j+1)
+                        let t2 = time(count,arr.slice(0),j,j+1)
+                        timers.push(t2)
                         count++ 
                     }
                 }
             if(noSwaps){
-                time(count,arr.slice(0),j,j+1)
+                let t3 = time(count,arr.slice(0),j,j+1)
+                timers.push(t3)
                 break
             };
         }
-        setTimeout(() => {
+        let t4 = setTimeout(() => {
             setAnimating(false)
             setInOrder(true)
         }, ms * count)
-
+        timers.push(t4)
+        tout.current = timers
     }
     const time = (count, arr,p1,p2) => {
-        setTimeout(() => {
-            if(arr[p1] !== undefined && arr[p2] !== undefined){
-            arr[p1].isPointer = true;
-            arr[p2].isPointer = true;
-            setNodes(arr);
-            setAnimating(true);
-            arr[p1].isPointer = false;
-            arr[p2].isPointer = false;  
-            }          
-        }, ms * count)               
-      }
+        
+        let t = setTimeout(() => {
+                if(arr[p1] !== undefined && arr[p2] !== undefined){
+                arr[p1].isPointer = true;
+                arr[p2].isPointer = true;
+                setNodes(arr);
+                setAnimating(true);
+                arr[p1].isPointer = false;
+                arr[p2].isPointer = false;  
+                }          
+            }, ms * count)
+        return t           
+    }
 
     const handleOptionChange = (e) => {
         if(e.target.value === 'slow'){
@@ -189,7 +217,7 @@ const Grid = () => {
                     );
                 })}                    
             </table>
-            <button disabled={animating} className='shuffle-btn' onClick={shuffle}>SHUFFLE</button> <br />
+            <button className='shuffle-btn' onClick={shuffle}>SHUFFLE</button> <br />
             <button disabled={inOrder || animating} className='button' onClick={animateInsertionsort}>Animate <br/> Insertion Sort</button>
             <button  disabled={inOrder || animating} onClick={animateSelectionsort}>Animate <br/>  Selection Sort</button>    
             <button disabled={inOrder || animating} onClick={animateBubblesort}>Animate <br/>  Bubble Sort</button>
